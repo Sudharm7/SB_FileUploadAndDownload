@@ -1,90 +1,89 @@
-//@version=4
-study(title="TFX Gold Sniper - V26 BLACK-GOLD [ULTRA]", shorttitle="TFX GS V26 ULTRA", overlay=true)
+//@version=5
+indicator(title="TFX Gold Sniper - V26 BLACK-GOLD [ULTRA]", shorttitle="TFX GS V26 ULTRA", overlay=true)
 
 // ================================================================
 //  MATH CORE — QR Decomposition / Polynomial Differentiator
-//  (Preserved from original, unchanged)
 // ================================================================
 
-matrix_get(_A,_i,_j,_nrows) =>
-    array.get(_A,_i+_nrows*_j)
+matrix_get(_A, _i, _j, _nrows) =>
+    array.get(_A, _i + _nrows * _j)
 
-matrix_set(_A,_value,_i,_j,_nrows) =>
-    array.set(_A,_i+_nrows*_j,_value)
+matrix_set(_A, _value, _i, _j, _nrows) =>
+    array.set(_A, _i + _nrows * _j, _value)
 
-transpose(_A,_nrows,_ncolumns) =>
-    var _AT = array.new_float(_nrows*_ncolumns,0)
-    for i = 0 to _nrows-1
-        for j = 0 to _ncolumns-1
-            matrix_set(_AT, matrix_get(_A,i,j,_nrows),j,i,_ncolumns)
+transpose(_A, _nrows, _ncolumns) =>
+    var _AT = array.new_float(_nrows * _ncolumns, 0)
+    for i = 0 to _nrows - 1
+        for j = 0 to _ncolumns - 1
+            matrix_set(_AT, matrix_get(_A, i, j, _nrows), j, i, _ncolumns)
     _AT
 
-multiply(_A,_B,_nrowsA,_ncolumnsA,_ncolumnsB) =>
-    var _C = array.new_float(_nrowsA*_ncolumnsB,0)
+multiply(_A, _B, _nrowsA, _ncolumnsA, _ncolumnsB) =>
+    var _C = array.new_float(_nrowsA * _ncolumnsB, 0)
     int _nrowsB = _ncolumnsA
     float elementC = 0.0
-    for i = 0 to _nrowsA-1
-        for j = 0 to _ncolumnsB-1
+    for i = 0 to _nrowsA - 1
+        for j = 0 to _ncolumnsB - 1
             elementC := 0
-            for k = 0 to _ncolumnsA-1
-                elementC := elementC + matrix_get(_A,i,k,_nrowsA)*matrix_get(_B,k,j,_nrowsB)
-            matrix_set(_C,elementC,i,j,_nrowsA)
+            for k = 0 to _ncolumnsA - 1
+                elementC := elementC + matrix_get(_A, i, k, _nrowsA) * matrix_get(_B, k, j, _nrowsB)
+            matrix_set(_C, elementC, i, j, _nrowsA)
     _C
 
-vnorm(_X,_n) =>
+vnorm(_X, _n) =>
     float _norm = 0.0
-    for i = 0 to _n-1
-        _norm := _norm + pow(array.get(_X,i),2)
-    sqrt(_norm)
+    for i = 0 to _n - 1
+        _norm := _norm + math.pow(array.get(_X, i), 2)
+    math.sqrt(_norm)
 
-qr_diag(_A,_nrows,_ncolumns) =>
-    var _Q = array.new_float(_nrows*_ncolumns,0)
-    var _R = array.new_float(_ncolumns*_ncolumns,0)
-    var _a = array.new_float(_nrows,0)
-    var _q = array.new_float(_nrows,0)
+qr_diag(_A, _nrows, _ncolumns) =>
+    var _Q = array.new_float(_nrows * _ncolumns, 0)
+    var _R = array.new_float(_ncolumns * _ncolumns, 0)
+    var _a = array.new_float(_nrows, 0)
+    var _q = array.new_float(_nrows, 0)
     float _r = 0.0
     float _aux = 0.0
-    for i = 0 to _nrows-1
-        array.set(_a,i,matrix_get(_A,i,0,_nrows))
-    _r := vnorm(_a,_nrows)
-    matrix_set(_R,_r,0,0,_ncolumns)
-    for i = 0 to _nrows-1
-        matrix_set(_Q,array.get(_a,i)/_r,i,0,_nrows)
+    for i = 0 to _nrows - 1
+        array.set(_a, i, matrix_get(_A, i, 0, _nrows))
+    _r := vnorm(_a, _nrows)
+    matrix_set(_R, _r, 0, 0, _ncolumns)
+    for i = 0 to _nrows - 1
+        matrix_set(_Q, array.get(_a, i) / _r, i, 0, _nrows)
     if _ncolumns != 1
-        for k = 1 to _ncolumns-1
-            for i = 0 to _nrows-1
-                array.set(_a,i,matrix_get(_A,i,k,_nrows))
-            for j = 0 to k-1
+        for k = 1 to _ncolumns - 1
+            for i = 0 to _nrows - 1
+                array.set(_a, i, matrix_get(_A, i, k, _nrows))
+            for j = 0 to k - 1
                 _r := 0
-                for i = 0 to _nrows-1
-                    _r := _r + matrix_get(_Q,i,j,_nrows)*array.get(_a,i)
-                matrix_set(_R,_r,j,k,_ncolumns)
-                for i = 0 to _nrows-1
-                    _aux := array.get(_a,i) - _r*matrix_get(_Q,i,j,_nrows)
-                    array.set(_a,i,_aux)
-            _r := vnorm(_a,_nrows)
-            matrix_set(_R,_r,k,k,_ncolumns)
-            for i = 0 to _nrows-1
-                matrix_set(_Q,array.get(_a,i)/_r,i,k,_nrows)
-    [_Q,_R]
+                for i = 0 to _nrows - 1
+                    _r := _r + matrix_get(_Q, i, j, _nrows) * array.get(_a, i)
+                matrix_set(_R, _r, j, k, _ncolumns)
+                for i = 0 to _nrows - 1
+                    _aux := array.get(_a, i) - _r * matrix_get(_Q, i, j, _nrows)
+                    array.set(_a, i, _aux)
+            _r := vnorm(_a, _nrows)
+            matrix_set(_R, _r, k, k, _ncolumns)
+            for i = 0 to _nrows - 1
+                matrix_set(_Q, array.get(_a, i) / _r, i, k, _nrows)
+    [_Q, _R]
 
-pinv(_A,_nrows,_ncolumns) =>
-    [_Q,_R] = qr_diag(_A,_nrows,_ncolumns)
-    _QT = transpose(_Q,_nrows,_ncolumns)
-    var _Rinv = array.new_float(_ncolumns*_ncolumns,0)
+pinv(_A, _nrows, _ncolumns) =>
+    [_Q, _R] = qr_diag(_A, _nrows, _ncolumns)
+    array<float> _QT = transpose(_Q, _nrows, _ncolumns)
+    var _Rinv = array.new_float(_ncolumns * _ncolumns, 0)
     float _r = 0.0
-    matrix_set(_Rinv,1/matrix_get(_R,0,0,_ncolumns),0,0,_ncolumns)
+    matrix_set(_Rinv, 1 / matrix_get(_R, 0, 0, _ncolumns), 0, 0, _ncolumns)
     if _ncolumns != 1
-        for j = 1 to _ncolumns-1
-            for i = 0 to j-1
+        for j = 1 to _ncolumns - 1
+            for i = 0 to j - 1
                 _r := 0.0
-                for k = i to j-1
-                    _r := _r + matrix_get(_Rinv,i,k,_ncolumns)*matrix_get(_R,k,j,_ncolumns)
-                matrix_set(_Rinv,_r,i,j,_ncolumns)
-            for k = 0 to j-1
-                matrix_set(_Rinv,-matrix_get(_Rinv,k,j,_ncolumns)/matrix_get(_R,j,j,_ncolumns),k,j,_ncolumns)
-            matrix_set(_Rinv,1/matrix_get(_R,j,j,_ncolumns),j,j,_ncolumns)
-    multiply(_Rinv,_QT,_ncolumns,_ncolumns,_nrows)
+                for k = i to j - 1
+                    _r := _r + matrix_get(_Rinv, i, k, _ncolumns) * matrix_get(_R, k, j, _ncolumns)
+                matrix_set(_Rinv, _r, i, j, _ncolumns)
+            for k = 0 to j - 1
+                matrix_set(_Rinv, -matrix_get(_Rinv, k, j, _ncolumns) / matrix_get(_R, j, j, _ncolumns), k, j, _ncolumns)
+            matrix_set(_Rinv, 1 / matrix_get(_R, j, j, _ncolumns), j, j, _ncolumns)
+    multiply(_Rinv, _QT, _ncolumns, _ncolumns, _nrows)
 
 norm_rmse(_x, _xhat) =>
     float _nrmse = 0.0
@@ -93,182 +92,163 @@ norm_rmse(_x, _xhat) =>
     else
         int _N = array.size(_x)
         float _mse = 0.0
-        for i = 0 to _N-1
-            _mse := _mse + pow(array.get(_x,i) - array.get(_xhat,i),2)/_N
-        _xmean = array.sum(_x)/_N
-        _nrmse := sqrt(_mse)/_xmean
+        for i = 0 to _N - 1
+            _mse := _mse + math.pow(array.get(_x, i) - array.get(_xhat, i), 2) / _N
+        float _xmean = array.sum(_x) / _N
+        _nrmse := math.sqrt(_mse) / _xmean
     _nrmse
 
-diff(_src,_window,_degree) =>
-    var _J = array.new_float(_window*(_degree+1),0)
-    for i = 0 to _window-1
+diff(_src, _window, _degree) =>
+    var _J = array.new_float(_window * (_degree + 1), 0)
+    for i = 0 to _window - 1
         for j = 0 to _degree
-            matrix_set(_J,pow(i,j),i,j,_window)
-    var _Y_raw = array.new_float(_window,na)
-    for j = 0 to _window-1
-        array.set(_Y_raw,j,_src[_window-1-j])
-    _C = pinv(_J,_window,_degree+1)
-    _a_coef = multiply(_C,_Y_raw,_degree+1,_window,1)
+            matrix_set(_J, math.pow(i, j), i, j, _window)
+    var _Y_raw = array.new_float(_window, na)
+    for j = 0 to _window - 1
+        array.set(_Y_raw, j, _src[_window - 1 - j])
+    _C = pinv(_J, _window, _degree + 1)
+    _a_coef = multiply(_C, _Y_raw, _degree + 1, _window, 1)
     float _diff = 0.0
     for i = 1 to _degree
-        _diff := _diff + i*array.get(_a_coef,i)*pow(_window-1,i-1)
-    _Y_hat = multiply(_J,_a_coef,_window,_degree+1,1)
-    float _nrmse = norm_rmse(_Y_raw,_Y_hat)
-    [_diff,_nrmse]
+        _diff := _diff + i * array.get(_a_coef, i) * math.pow(_window - 1, i - 1)
+    _Y_hat = multiply(_J, _a_coef, _window, _degree + 1, 1)
+    float _nrmse = norm_rmse(_Y_raw, _Y_hat)
+    [_diff, _nrmse]
 
 // ================================================================
 //  MARKET PRESET
-//  Gold:   RSI=14, Win=28, Deg=2, Sig=3  — swing momentum, wider ATR SL
-//  NAS100: RSI=10, Win=21, Deg=3, Sig=2  — fast, high-order poly for sharp moves
-//  US30:   RSI=12, Win=24, Deg=2, Sig=3  — medium tempo, similar to Gold
-//  India:  RSI=14, Win=28, Deg=2, Sig=4  — slower signal to reduce gap-noise
 // ================================================================
 grpPre = "Market Preset"
-marketPreset = input("Gold (XAUUSD)", "Market", group=grpPre, type=input.string,
-               options=["Gold (XAUUSD)","NAS100","US30","India (NIFTY/BNF)","Custom"])
+marketPreset = input.string("Gold (XAUUSD)", "Market", group=grpPre,
+               options=["Gold (XAUUSD)", "NAS100", "US30", "India (NIFTY/BNF)", "Custom"])
 
-p_rsi = marketPreset=="Gold (XAUUSD)" ? 14 : marketPreset=="NAS100" ? 10 : marketPreset=="US30" ? 12 : 14
-p_win = marketPreset=="Gold (XAUUSD)" ? 28 : marketPreset=="NAS100" ? 21 : marketPreset=="US30" ? 24 : 28
-p_deg = marketPreset=="Gold (XAUUSD)" ? 2  : marketPreset=="NAS100" ? 3  : marketPreset=="US30" ? 2  : 2
-p_sig = marketPreset=="Gold (XAUUSD)" ? 3  : marketPreset=="NAS100" ? 2  : marketPreset=="US30" ? 3  : 4
-p_atr = marketPreset=="Gold (XAUUSD)" ? 1.5: marketPreset=="NAS100" ? 1.2: marketPreset=="US30" ? 1.5: 1.5
+p_rsi = marketPreset == "Gold (XAUUSD)" ? 14 : marketPreset == "NAS100" ? 10 : marketPreset == "US30" ? 12 : 14
+p_win = marketPreset == "Gold (XAUUSD)" ? 28 : marketPreset == "NAS100" ? 21 : marketPreset == "US30" ? 24 : 28
+p_deg = marketPreset == "Gold (XAUUSD)" ? 2  : marketPreset == "NAS100" ? 3  : marketPreset == "US30" ? 2  : 2
+p_sig = marketPreset == "Gold (XAUUSD)" ? 3  : marketPreset == "NAS100" ? 2  : marketPreset == "US30" ? 3  : 4
+p_atr = marketPreset == "Gold (XAUUSD)" ? 1.5: marketPreset == "NAS100" ? 1.2: marketPreset == "US30" ? 1.5: 1.5
 
 // ================================================================
-//  INPUTS — MODEL (only active when preset = Custom)
+//  INPUTS — MODEL (Custom preset only)
 // ================================================================
 grpMod = "Model Parameters (Custom preset only):"
-c_rsi = input(14, "RSI Length",       group=grpMod, inline="m1", type=input.integer, minval=1)
-c_deg = input(2,  "Polynomial Order", group=grpMod, inline="m1", type=input.integer, minval=1)
-c_win = input(28, "Window (> Order)", group=grpMod, inline="m2", type=input.integer, minval=2)
-c_sig = input(3,  "Signal EMA",       group=grpMod, inline="m2", type=input.integer, minval=1)
+c_rsi = input.int(14,  "RSI Length",       group=grpMod, inline="m1", minval=1)
+c_deg = input.int(2,   "Polynomial Order", group=grpMod, inline="m1", minval=1)
+c_win = input.int(28,  "Window (> Order)", group=grpMod, inline="m2", minval=2)
+c_sig = input.int(3,   "Signal EMA",       group=grpMod, inline="m2", minval=1)
 
 isCustom = marketPreset == "Custom"
-fRSI     = isCustom ? c_rsi : p_rsi
-fDeg     = isCustom ? c_deg : p_deg
-fWin     = isCustom ? c_win : p_win
-fSig     = isCustom ? c_sig : p_sig
+fRSI = isCustom ? c_rsi : p_rsi
+fDeg = isCustom ? c_deg : p_deg
+fWin = isCustom ? c_win : p_win
+fSig = isCustom ? c_sig : p_sig
 
 // ================================================================
 //  INPUTS — SIGNAL SETTINGS
 // ================================================================
 grpSig = "Signal Settings:"
-islong        = input(true,  "Buy",  group=grpSig, inline="ss1", type=input.bool)
-isshort       = input(true,  "Sell", group=grpSig, inline="ss1", type=input.bool)
-showendlabels = input(true,  "Exit", group=grpSig, inline="ss1", type=input.bool)
-buycond  = input("Signal Line Crossing", "Buy Cond",  group=grpSig, type=input.string, options=["Zero-Crossing","Signal Line Crossing","Direction Change"])
-sellcond = input("Signal Line Crossing", "Sell Cond", group=grpSig, type=input.string, options=["Zero-Crossing","Signal Line Crossing","Direction Change"])
-endcond  = input("Signal Line Crossing", "Exit Cond", group=grpSig, type=input.string, options=["Zero-Crossing","Signal Line Crossing","Direction Change"])
+islong        = input.bool(true,  "Buy",  group=grpSig, inline="ss1")
+isshort       = input.bool(true,  "Sell", group=grpSig, inline="ss1")
+showendlabels = input.bool(true,  "Exit", group=grpSig, inline="ss1")
+buycond  = input.string("Signal Line Crossing", "Buy Cond",  group=grpSig, options=["Zero-Crossing", "Signal Line Crossing", "Direction Change"])
+sellcond = input.string("Signal Line Crossing", "Sell Cond", group=grpSig, options=["Zero-Crossing", "Signal Line Crossing", "Direction Change"])
+endcond  = input.string("Signal Line Crossing", "Exit Cond", group=grpSig, options=["Zero-Crossing", "Signal Line Crossing", "Direction Change"])
 
 // ================================================================
 //  INPUTS — FILTERS
 // ================================================================
 grpFil = "Filters:"
 
-// NRMSE
-usenrmse  = input(true,  "NRMSE Quality Filter",         group=grpFil, inline="f1", type=input.bool)
-rmse_thrs = input(10.0,  "Max Fit Error %",              group=grpFil, inline="f1", type=input.float, minval=0.0,
-            tooltip="Rejects signals when polynomial fit error is too high (noisy/choppy price action).") / 100
+usenrmse  = input.bool(true,   "NRMSE Quality Filter",     group=grpFil, inline="f1")
+rmse_thrs = input.float(10.0,  "Max Fit Error %",           group=grpFil, inline="f1", minval=0.0,
+            tooltip="Rejects signals when polynomial fit error is too high.") / 100
 
-// EMA Trend Filter
-useTrend  = input(true,  "EMA Trend Filter",             group=grpFil, inline="f2", type=input.bool)
-trendLen  = input(200,   "EMA Length",                   group=grpFil, inline="f2", type=input.integer, minval=10,
-            tooltip="Only takes buy signals above EMA and sell signals below EMA.")
+useTrend  = input.bool(true,   "EMA Trend Filter",          group=grpFil, inline="f2")
+trendLen  = input.int(200,     "EMA Length",                group=grpFil, inline="f2", minval=10,
+            tooltip="Buy above EMA only. Sell below EMA only.")
 
-// ADX Trending Filter
-useADX    = input(true,  "ADX Trend-Strength Filter",    group=grpFil, inline="f3", type=input.bool)
-adxLen    = input(14,    "ADX Length",                   group=grpFil, inline="f3", type=input.integer, minval=1)
-adxThresh = input(20,    "Min ADX",                      group=grpFil, inline="f3", type=input.integer, minval=1,
-            tooltip="Blocks signals when ADX is below threshold (ranging/sideways market).")
+useADX    = input.bool(true,   "ADX Trend-Strength Filter", group=grpFil, inline="f3")
+adxLen    = input.int(14,      "ADX Length",                group=grpFil, inline="f3", minval=1)
+adxThresh = input.int(20,      "Min ADX",                   group=grpFil, inline="f3", minval=1,
+            tooltip="Blocks signals in ranging/sideways markets.")
 
-// Volatility Squeeze Filter — blocks signals when ATR is unusually compressed
-useVolSq  = input(false, "ATR Squeeze Filter",           group=grpFil, inline="f4", type=input.bool)
-sqLen     = input(50,    "ATR Lookback",                 group=grpFil, inline="f4", type=input.integer, minval=10,
-            tooltip="Blocks signals when current ATR is in the bottom 25% of its recent range (pre-breakout compression).")
+useVolSq  = input.bool(false,  "ATR Squeeze Filter",        group=grpFil, inline="f4")
+sqLen     = input.int(50,      "ATR Lookback",              group=grpFil, inline="f4", minval=10,
+            tooltip="Blocks signals when volatility is in bottom 25% of recent range.")
 
-// Session Filter
-useSession = input(false,      "Session Filter",         group=grpFil, inline="f5", type=input.bool)
-sessionStr = input("0800-2100","Session (exchange time)", group=grpFil, inline="f5", type=input.string,
-             tooltip="Gold/NAS100/US30: 0800-2100 | India (NIFTY): 0915-1530 | Times are in exchange timezone.")
+useSession = input.bool(false,       "Session Filter",           group=grpFil, inline="f5")
+sessionStr = input.string("0800-2100","Session (exchange time)",  group=grpFil, inline="f5",
+             tooltip="Gold/NAS100/US30: 0800-2100 | India: 0915-1530 | Exchange timezone.")
 
 // ================================================================
 //  INPUTS — ATR / RISK
 // ================================================================
 grpATR  = "ATR / Risk Settings:"
-atrLen  = input(14,  "ATR Period",        group=grpATR, inline="a1", type=input.integer, minval=1)
-c_atrM  = input(1.5, "SL Multiplier",    group=grpATR, inline="a1", type=input.float,   minval=0.1, step=0.1,
-          tooltip="Stop-loss = Entry ± (ATR × Multiplier). Preset auto-adjusts per market.")
-rrValue = input(2.0, "Risk : Reward",    group=grpATR, type=input.float, minval=0.1,
-          tooltip="Take-profit is calculated from the ATR-based SL distance × this ratio.")
+atrLen  = input.int(14,    "ATR Period",     group=grpATR, inline="a1", minval=1)
+c_atrM  = input.float(1.5, "SL Multiplier", group=grpATR, inline="a1", minval=0.1, step=0.1,
+          tooltip="SL = Entry ± (ATR × Multiplier). Preset auto-adjusts per market.")
+rrValue = input.float(2.0, "Risk : Reward", group=grpATR, minval=0.1)
 
 fAtrMult = isCustom ? c_atrM : p_atr
 
 // ================================================================
 //  CALCULATIONS
 // ================================================================
+src           = ta.rsi(close, fRSI)
+[drsi, nrmse] = diff(src, fWin, fDeg)
+signalline    = ta.ema(drsi, fSig)
 
-// D-RSI core
-src              = rsi(close, fRSI)
-[drsi, nrmse]    = diff(src, fWin, fDeg)
-signalline       = ema(drsi, fSig)
-
-// ATR
-atrVal = atr(atrLen)
-
-// EMA Trend
-trendEMA = ema(close, trendLen)
+atrVal   = ta.atr(atrLen)
+trendEMA = ta.ema(close, trendLen)
 trendUp  = close > trendEMA
 trendDn  = close < trendEMA
 
-// Manual ADX (avoids dmi() built-in compatibility issues)
-_tr      = max(high - low, max(abs(high - close[1]), abs(low - close[1])))
-_dmPlus  = high - high[1] > low[1] - low ? max(high - high[1], 0.0) : 0.0
-_dmMinus = low[1] - low > high - high[1] ? max(low[1] - low,  0.0) : 0.0
-_trSmth  = rma(_tr,      adxLen)
-_dpSmth  = rma(_dmPlus,  adxLen)
-_dmSmth  = rma(_dmMinus, adxLen)
+// Manual ADX
+_tr      = math.max(high - low, math.max(math.abs(high - close[1]), math.abs(low - close[1])))
+_dmPlus  = high - high[1] > low[1] - low ? math.max(high - high[1], 0.0) : 0.0
+_dmMinus = low[1] - low > high - high[1] ? math.max(low[1] - low,  0.0) : 0.0
+_trSmth  = ta.rma(_tr,      adxLen)
+_dpSmth  = ta.rma(_dmPlus,  adxLen)
+_dmSmth  = ta.rma(_dmMinus, adxLen)
 diPlus   = _dpSmth / _trSmth * 100
 diMinus  = _dmSmth / _trSmth * 100
-_dx      = abs(diPlus - diMinus) / max(diPlus + diMinus, 0.0001) * 100
-adxVal   = rma(_dx, adxLen)
+_dx      = math.abs(diPlus - diMinus) / math.max(diPlus + diMinus, 0.0001) * 100
+adxVal   = ta.rma(_dx, adxLen)
 
-// ATR Squeeze (block signals when ATR is in lower 25% of its recent range)
-atrHigh    = highest(atrVal, sqLen)
-atrLow     = lowest(atrVal,  sqLen)
-atrPctRank = (atrVal - atrLow) / max(atrHigh - atrLow, 0.0001)
+// ATR Squeeze
+atrHigh    = ta.highest(atrVal, sqLen)
+atrLow     = ta.lowest(atrVal,  sqLen)
+atrPctRank = (atrVal - atrLow) / math.max(atrHigh - atrLow, 0.0001)
 noSqueeze  = useVolSq ? atrPctRank > 0.25 : true
 
-// Session
-inSession = time(timeframe.period, sessionStr) != 0
-
-// Signal quality tiers
-highQuality = nrmse < rmse_thrs * 0.5   // very clean fit
-goodQuality = nrmse < rmse_thrs          // acceptable fit
+inSession   = time(timeframe.period, sessionStr) != 0
+highQuality = nrmse < rmse_thrs * 0.5
+goodQuality = nrmse < rmse_thrs
 
 // ================================================================
 //  FILTERS
 // ================================================================
-f_nrmse  = usenrmse   ? goodQuality             : true
-f_adx    = useADX     ? adxVal > adxThresh      : true
-f_sess   = useSession ? inSession               : true
-f_sq     = noSqueeze
+f_nrmse = usenrmse   ? goodQuality        : true
+f_adx   = useADX     ? adxVal > adxThresh : true
+f_sess  = useSession ? inSession          : true
 
-filterBuy  = f_nrmse and f_adx and f_sess and f_sq and (useTrend ? trendUp : true)
-filterSell = f_nrmse and f_adx and f_sess and f_sq and (useTrend ? trendDn : true)
+filterBuy  = f_nrmse and f_adx and f_sess and noSqueeze and (useTrend ? trendUp : true)
+filterSell = f_nrmse and f_adx and f_sess and noSqueeze and (useTrend ? trendDn : true)
 
 // ================================================================
 //  SIGNAL CONDITIONS
 // ================================================================
 dirchangeup = drsi > drsi[1] and drsi[1] < drsi[2] and drsi[1] < 0.0
 dirchangedw = drsi < drsi[1] and drsi[1] > drsi[2] and drsi[1] > 0.0
-crossup     = crossover(drsi, 0.0)
-crossdw     = crossunder(drsi, 0.0)
-crosssigup  = crossover(drsi, signalline)
-crosssigdw  = crossunder(drsi, signalline)
+crossup     = ta.crossover(drsi,  0.0)
+crossdw     = ta.crossunder(drsi, 0.0)
+crosssigup  = ta.crossover(drsi,  signalline)
+crosssigdw  = ta.crossunder(drsi, signalline)
 
-rawLong  = buycond=="Direction Change"  ? dirchangeup : buycond=="Zero-Crossing"  ? crossup  : crosssigup
-rawShort = sellcond=="Direction Change" ? dirchangedw : sellcond=="Zero-Crossing" ? crossdw  : crosssigdw
-rawEndL  = endcond=="Direction Change"  ? dirchangedw : endcond=="Zero-Crossing"  ? crossdw  : crosssigdw
-rawEndS  = endcond=="Direction Change"  ? dirchangeup : endcond=="Zero-Crossing"  ? crossup  : crosssigup
+rawLong  = buycond  == "Direction Change" ? dirchangeup : buycond  == "Zero-Crossing" ? crossup  : crosssigup
+rawShort = sellcond == "Direction Change" ? dirchangedw : sellcond == "Zero-Crossing" ? crossdw  : crosssigdw
+rawEndL  = endcond  == "Direction Change" ? dirchangedw : endcond  == "Zero-Crossing" ? crossdw  : crosssigdw
+rawEndS  = endcond  == "Direction Change" ? dirchangeup : endcond  == "Zero-Crossing" ? crossup  : crosssigup
 
 golong   = rawLong  and filterBuy
 goshort  = rawShort and filterSell
@@ -276,28 +256,23 @@ endlong  = rawEndL  and filterBuy
 endshort = rawEndS  and filterSell
 
 // ================================================================
-//  PLOTS — SHAPES
-//  High-quality signals: larger triangle | Normal: smaller
+//  PLOTS
 // ================================================================
-buyClr    = highQuality ? color.rgb(0, 255, 100)   : color.rgb(86, 203, 47)
-sellClr   = highQuality ? color.rgb(255, 50, 50)   : color.rgb(204, 0, 0)
-buySize   = highQuality ? size.normal : size.small
-sellSize  = highQuality ? size.normal : size.small
+buyClr  = highQuality ? color.rgb(0,   255, 100) : color.rgb(86,  203, 47)
+sellClr = highQuality ? color.rgb(255,  50,  50) : color.rgb(204,   0,  0)
+buySize = highQuality ? size.normal : size.small
+sellSize= highQuality ? size.normal : size.small
 
-plotshape(golong  and islong  ? low  : na, "Buy",        location=location.belowbar, style=shape.triangleup,   color=buyClr,        size=buySize)
-plotshape(goshort and isshort ? high : na, "Sell",       location=location.abovebar, style=shape.triangledown, color=sellClr,       size=sellSize)
+plotshape(golong  and islong  ? low  : na, "Buy",       location=location.belowbar, style=shape.triangleup,   color=buyClr,      size=buySize)
+plotshape(goshort and isshort ? high : na, "Sell",      location=location.abovebar, style=shape.triangledown, color=sellClr,     size=sellSize)
 plotshape(showendlabels and endlong  and islong  ? high : na, "Exit Long",  location=location.abovebar, offset=-1, style=shape.xcross, color=color.gray, size=size.tiny)
 plotshape(showendlabels and endshort and isshort ? low  : na, "Exit Short", location=location.belowbar, offset=-1, style=shape.xcross, color=color.gray, size=size.tiny)
 
-// EMA Trend line
 plot(useTrend ? trendEMA : na, "Trend EMA",
-     color=trendUp ? color.new(color.green, 50) : color.new(color.red, 50),
-     linewidth=2)
+     color=trendUp ? color.new(color.green, 50) : color.new(color.red, 50), linewidth=2)
 
 // ================================================================
-//  ATR-BASED DYNAMIC RR BOXES
-//  SL = close ± (ATR × multiplier)   ← adaptive, not crude prev candle
-//  TP = entry ± SL-distance × RR
+//  ATR-BASED RR BOXES
 // ================================================================
 drawBuyBox(entry, sl, rr) =>
     tp = entry + (entry - sl) * rr
@@ -318,13 +293,13 @@ if goshort
 // ================================================================
 //  ALERTS
 // ================================================================
-alertcondition(golong,   "Long Signal",      "TFX GS V26 [" + marketPreset + "]: LONG")
-alertcondition(goshort,  "Short Signal",     "TFX GS V26 [" + marketPreset + "]: SHORT")
-alertcondition(endlong,  "Exit Long Signal", "TFX GS V26 [" + marketPreset + "]: EXIT LONG")
-alertcondition(endshort, "Exit Short Signal","TFX GS V26 [" + marketPreset + "]: EXIT SHORT")
+alertcondition(golong,   "Long Signal",      "TFX GS V26: LONG")
+alertcondition(goshort,  "Short Signal",     "TFX GS V26: SHORT")
+alertcondition(endlong,  "Exit Long Signal", "TFX GS V26: EXIT LONG")
+alertcondition(endshort, "Exit Short Signal","TFX GS V26: EXIT SHORT")
 
 // ================================================================
-//  LIVE DASHBOARD TABLE  (all values are computed, nothing hardcoded)
+//  LIVE DASHBOARD TABLE
 // ================================================================
 bgDark  = color.rgb(18,  18,  18)
 bgCell  = color.rgb(30,  30,  30)
@@ -332,50 +307,37 @@ gold    = color.rgb(229, 207, 15)
 white   = color.white
 cGreen  = color.rgb(80,  220, 78)
 cRed    = color.rgb(220, 80,  80)
-cYellow = color.rgb(240, 200, 0)
+cYellow = color.rgb(240, 200,  0)
 
-// Live computed labels
-trendTxt   = trendUp ? "BULLISH"  : "BEARISH"
-trendClr   = trendUp ? cGreen     : cRed
-
-adxTxt     = adxVal >= 25 ? "TRENDING" : adxVal >= 15 ? "WEAK" : "RANGING"
-adxClr     = adxVal >= 25 ? cGreen     : adxVal >= 15 ? cYellow : cRed
-
-qualTxt    = highQuality ? "HIGH" : goodQuality ? "NORMAL" : "LOW"
-qualClr    = highQuality ? cGreen : goodQuality ? cYellow  : cRed
-
-sqTxt      = atrPctRank > 0.50 ? "EXPANDED" : atrPctRank > 0.25 ? "NORMAL" : "SQUEEZE"
-sqClr      = atrPctRank > 0.50 ? cGreen     : atrPctRank > 0.25 ? cYellow  : cRed
-
-atrTxt     = tostring(round(atrVal * 100) / 100)
-adxNumTxt  = tostring(round(adxVal))
+trendTxt  = trendUp  ? "BULLISH"   : "BEARISH"
+trendClr  = trendUp  ? cGreen      : cRed
+adxTxt    = adxVal >= 25 ? "TRENDING" : adxVal >= 15 ? "WEAK" : "RANGING"
+adxClr    = adxVal >= 25 ? cGreen     : adxVal >= 15 ? cYellow : cRed
+qualTxt   = highQuality  ? "HIGH"   : goodQuality ? "NORMAL" : "LOW"
+qualClr   = highQuality  ? cGreen   : goodQuality ? cYellow  : cRed
+sqTxt     = atrPctRank > 0.50 ? "EXPANDED" : atrPctRank > 0.25 ? "NORMAL" : "SQUEEZE"
+sqClr     = atrPctRank > 0.50 ? cGreen     : atrPctRank > 0.25 ? cYellow  : cRed
+atrTxt    = str.tostring(math.round(atrVal * 100) / 100)
+adxNumTxt = str.tostring(math.round(adxVal))
 
 var table tbl = table.new(position.top_right, 2, 8,
      frame_color=color.rgb(80, 70, 10), frame_width=1,
      border_color=color.rgb(45, 45, 45), border_width=1)
 
 if barstate.islast
-    // Header
-    table.cell(tbl, 0, 0, "TFX BLACK-GOLD", text_color=gold,  bgcolor=bgDark, text_size=size.normal)
-    table.cell(tbl, 1, 0, "V26 ULTRA",      text_color=white, bgcolor=bgDark, text_size=size.small)
-    // Market
-    table.cell(tbl, 0, 1, "MARKET",     text_color=white,    bgcolor=bgCell, text_size=size.small)
-    table.cell(tbl, 1, 1, marketPreset, text_color=gold,     bgcolor=bgCell, text_size=size.small)
-    // Trend
-    table.cell(tbl, 0, 2, "TREND",      text_color=white,    bgcolor=bgCell, text_size=size.small)
-    table.cell(tbl, 1, 2, trendTxt,     text_color=trendClr, bgcolor=bgCell, text_size=size.small)
-    // ADX label
-    table.cell(tbl, 0, 3, "MOMENTUM",   text_color=white,    bgcolor=bgCell, text_size=size.small)
-    table.cell(tbl, 1, 3, adxTxt,       text_color=adxClr,   bgcolor=bgCell, text_size=size.small)
-    // ADX value
-    table.cell(tbl, 0, 4, "ADX",        text_color=white,    bgcolor=bgCell, text_size=size.small)
-    table.cell(tbl, 1, 4, adxNumTxt,    text_color=adxClr,   bgcolor=bgCell, text_size=size.small)
-    // Signal quality
-    table.cell(tbl, 0, 5, "FIT QUALITY",text_color=white,    bgcolor=bgCell, text_size=size.small)
-    table.cell(tbl, 1, 5, qualTxt,      text_color=qualClr,  bgcolor=bgCell, text_size=size.small)
-    // Volatility
-    table.cell(tbl, 0, 6, "VOLATILITY", text_color=white,    bgcolor=bgCell, text_size=size.small)
-    table.cell(tbl, 1, 6, sqTxt,        text_color=sqClr,    bgcolor=bgCell, text_size=size.small)
-    // ATR
-    table.cell(tbl, 0, 7, "ATR",        text_color=white,    bgcolor=bgCell, text_size=size.small)
-    table.cell(tbl, 1, 7, atrTxt,       text_color=gold,     bgcolor=bgCell, text_size=size.small)
+    table.cell(tbl, 0, 0, "TFX BLACK-GOLD", text_color=gold,     bgcolor=bgDark, text_size=size.normal)
+    table.cell(tbl, 1, 0, "V26 ULTRA",      text_color=white,    bgcolor=bgDark, text_size=size.small)
+    table.cell(tbl, 0, 1, "MARKET",         text_color=white,    bgcolor=bgCell, text_size=size.small)
+    table.cell(tbl, 1, 1, marketPreset,     text_color=gold,     bgcolor=bgCell, text_size=size.small)
+    table.cell(tbl, 0, 2, "TREND",          text_color=white,    bgcolor=bgCell, text_size=size.small)
+    table.cell(tbl, 1, 2, trendTxt,         text_color=trendClr, bgcolor=bgCell, text_size=size.small)
+    table.cell(tbl, 0, 3, "MOMENTUM",       text_color=white,    bgcolor=bgCell, text_size=size.small)
+    table.cell(tbl, 1, 3, adxTxt,           text_color=adxClr,   bgcolor=bgCell, text_size=size.small)
+    table.cell(tbl, 0, 4, "ADX",            text_color=white,    bgcolor=bgCell, text_size=size.small)
+    table.cell(tbl, 1, 4, adxNumTxt,        text_color=adxClr,   bgcolor=bgCell, text_size=size.small)
+    table.cell(tbl, 0, 5, "FIT QUALITY",    text_color=white,    bgcolor=bgCell, text_size=size.small)
+    table.cell(tbl, 1, 5, qualTxt,          text_color=qualClr,  bgcolor=bgCell, text_size=size.small)
+    table.cell(tbl, 0, 6, "VOLATILITY",     text_color=white,    bgcolor=bgCell, text_size=size.small)
+    table.cell(tbl, 1, 6, sqTxt,            text_color=sqClr,    bgcolor=bgCell, text_size=size.small)
+    table.cell(tbl, 0, 7, "ATR",            text_color=white,    bgcolor=bgCell, text_size=size.small)
+    table.cell(tbl, 1, 7, atrTxt,           text_color=gold,     bgcolor=bgCell, text_size=size.small)
