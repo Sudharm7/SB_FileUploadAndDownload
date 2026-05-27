@@ -193,15 +193,12 @@ exL = rawEL and fBuy
 exS = rawES and fSel
 
 // === PLOTS ===
-bClr = hq ? color.rgb(0, 255, 100) : color.rgb(86, 203, 47)
-sClr = hq ? color.rgb(255, 50, 50) : color.rgb(204, 0, 0)
-bSz = hq ? size.normal : size.small
-sSz = hq ? size.normal : size.small
-
-plotshape(goL and i_long ? low : na, "Buy", style = shape.triangleup, location = location.belowbar, color = bClr, size = bSz)
-plotshape(goS and i_shrt ? high : na, "Sell", style = shape.triangledown, location = location.abovebar, color = sClr, size = sSz)
-plotshape(i_exit and exL and i_long ? high : na, "Exit Long", style = shape.xcross, location = location.abovebar, offset = -1, color = color.gray, size = size.tiny)
-plotshape(i_exit and exS and i_shrt ? low : na, "Exit Short", style = shape.xcross, location = location.belowbar, offset = -1, color = color.gray, size = size.tiny)
+plotshape(goL and i_long and hq ? low : na,      "Buy HQ",   style = shape.triangleup,   location = location.belowbar, color = color.rgb(0, 255, 100),  size = size.normal)
+plotshape(goL and i_long and not hq ? low : na,  "Buy",      style = shape.triangleup,   location = location.belowbar, color = color.rgb(86, 203, 47),  size = size.small)
+plotshape(goS and i_shrt and hq ? high : na,     "Sell HQ",  style = shape.triangledown, location = location.abovebar, color = color.rgb(255, 50, 50),  size = size.normal)
+plotshape(goS and i_shrt and not hq ? high : na, "Sell",     style = shape.triangledown, location = location.abovebar, color = color.rgb(204, 0, 0),    size = size.small)
+plotshape(i_exit and exL and i_long ? high : na, "Exit Long",  style = shape.xcross, location = location.abovebar, offset = -1, color = color.gray, size = size.tiny)
+plotshape(i_exit and exS and i_shrt ? low : na,  "Exit Short", style = shape.xcross, location = location.belowbar, offset = -1, color = color.gray, size = size.tiny)
 
 plot(i_ft ? ema200 : na, "Trend EMA", color = tUp ? color.new(color.green, 50) : color.new(color.red, 50), linewidth = 2)
 
