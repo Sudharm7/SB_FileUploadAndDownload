@@ -219,8 +219,17 @@ trendEMA = ema(close, trendLen)
 trendUp  = close > trendEMA
 trendDn  = close < trendEMA
 
-// ADX
-[diPlus, diMinus, adxVal] = dmi(adxLen, adxLen)
+// Manual ADX (avoids dmi() built-in compatibility issues)
+_tr      = max(high - low, max(abs(high - close[1]), abs(low - close[1])))
+_dmPlus  = high - high[1] > low[1] - low ? max(high - high[1], 0.0) : 0.0
+_dmMinus = low[1] - low > high - high[1] ? max(low[1] - low,  0.0) : 0.0
+_trSmth  = rma(_tr,      adxLen)
+_dpSmth  = rma(_dmPlus,  adxLen)
+_dmSmth  = rma(_dmMinus, adxLen)
+diPlus   = _dpSmth / _trSmth * 100
+diMinus  = _dmSmth / _trSmth * 100
+_dx      = abs(diPlus - diMinus) / max(diPlus + diMinus, 0.0001) * 100
+adxVal   = rma(_dx, adxLen)
 
 // ATR Squeeze (block signals when ATR is in lower 25% of its recent range)
 atrHigh    = highest(atrVal, sqLen)
