@@ -1,7 +1,7 @@
 //@version=5
-indicator("TFX Gold Sniper - V26 BLACK-GOLD [ULTRA]", "TFX GS V26 ULTRA", overlay = true)
+indicator("TFX Gold Sniper - V26 BLACK-GOLD ULTRA", "TFX GS V26 ULTRA", overlay = true)
 
-// ─── MATH CORE ───────────────────────────────────────────────────
+// === MATH CORE ===
 mget(A, i, j, nr) => array.get(A, i + nr * j)
 mset(A, v, i, j, nr) => array.set(A, i + nr * j, v)
 
@@ -97,7 +97,7 @@ calc_drsi(src, win, deg) =>
     var Y = array.new_float(win, na)
     for i = 0 to win - 1
         array.set(Y, i, src[win - 1 - i])
-    C  = pinv(J, win, deg + 1)
+    C = pinv(J, win, deg + 1)
     ac = multiply(C, Y, deg + 1, win, 1)
     float d = 0.0
     for i = 1 to deg
@@ -106,154 +106,153 @@ calc_drsi(src, win, deg) =>
     float err = calc_nrmse(Y, Yh)
     [d, err]
 
-// ─── INPUTS ──────────────────────────────────────────────────────
-i_mkt  = input.string("Gold (XAUUSD)", "Market Preset", group="Market Preset", options=["Gold (XAUUSD)", "NAS100", "US30", "India (NIFTY/BNF)", "Custom"])
+// === INPUTS ===
+i_mkt = input.string("Gold (XAUUSD)", "Market Preset", group = "Market Preset", options = ["Gold (XAUUSD)", "NAS100", "US30", "India (NIFTY/BNF)", "Custom"])
 
-i_rsi  = input.int(14,  "RSI Length",  group="Custom Model (ignored unless Custom preset):", inline="m1", minval=1)
-i_deg  = input.int(2,   "Poly Order",  group="Custom Model (ignored unless Custom preset):", inline="m1", minval=1)
-i_win  = input.int(28,  "Window",      group="Custom Model (ignored unless Custom preset):", inline="m2", minval=2)
-i_sig  = input.int(3,   "Signal EMA",  group="Custom Model (ignored unless Custom preset):", inline="m2", minval=1)
+i_rsi = input.int(14, "RSI Length", group = "Custom Model", inline = "m1", minval = 1)
+i_deg = input.int(2, "Poly Order", group = "Custom Model", inline = "m1", minval = 1)
+i_win = input.int(28, "Window", group = "Custom Model", inline = "m2", minval = 2)
+i_sig = input.int(3, "Signal EMA", group = "Custom Model", inline = "m2", minval = 1)
 
-i_long = input.bool(true, "Buy",  group="Signals:", inline="s1")
-i_shrt = input.bool(true, "Sell", group="Signals:", inline="s1")
-i_exit = input.bool(true, "Exit", group="Signals:", inline="s1")
-i_bc   = input.string("Signal Line Crossing", "Buy",  group="Signals:", options=["Zero-Crossing", "Signal Line Crossing", "Direction Change"])
-i_sc   = input.string("Signal Line Crossing", "Sell", group="Signals:", options=["Zero-Crossing", "Signal Line Crossing", "Direction Change"])
-i_ec   = input.string("Signal Line Crossing", "Exit", group="Signals:", options=["Zero-Crossing", "Signal Line Crossing", "Direction Change"])
+i_long = input.bool(true, "Buy", group = "Signals", inline = "s1")
+i_shrt = input.bool(true, "Sell", group = "Signals", inline = "s1")
+i_exit = input.bool(true, "Exit", group = "Signals", inline = "s1")
+i_bc = input.string("Signal Line Crossing", "Buy", group = "Signals", options = ["Zero-Crossing", "Signal Line Crossing", "Direction Change"])
+i_sc = input.string("Signal Line Crossing", "Sell", group = "Signals", options = ["Zero-Crossing", "Signal Line Crossing", "Direction Change"])
+i_ec = input.string("Signal Line Crossing", "Exit", group = "Signals", options = ["Zero-Crossing", "Signal Line Crossing", "Direction Change"])
 
-i_fn   = input.bool(true,  "NRMSE Filter", group="Filters:", inline="f1")
-i_fe   = input.float(10.0, "Max Error %",  group="Filters:", inline="f1", minval=0.0)
-i_ft   = input.bool(true,  "EMA Trend",   group="Filters:", inline="f2")
-i_tl   = input.int(200,    "EMA Len",     group="Filters:", inline="f2", minval=10)
-i_fa   = input.bool(true,  "ADX Filter",  group="Filters:", inline="f3")
-i_al   = input.int(14,     "ADX Len",     group="Filters:", inline="f3", minval=1)
-i_at   = input.int(20,     "Min ADX",     group="Filters:", inline="f3", minval=1)
-i_fs   = input.bool(false, "Session",     group="Filters:", inline="f4")
-i_ss   = input.string("0800-2100", "Hours", group="Filters:", inline="f4")
+i_fn = input.bool(true, "NRMSE Filter", group = "Filters", inline = "f1")
+i_fe = input.float(10.0, "Max Error %", group = "Filters", inline = "f1", minval = 0.0)
+i_ft = input.bool(true, "EMA Trend", group = "Filters", inline = "f2")
+i_tl = input.int(200, "EMA Len", group = "Filters", inline = "f2", minval = 10)
+i_fa = input.bool(true, "ADX Filter", group = "Filters", inline = "f3")
+i_al = input.int(14, "ADX Len", group = "Filters", inline = "f3", minval = 1)
+i_at = input.int(20, "Min ADX", group = "Filters", inline = "f3", minval = 1)
+i_fs = input.bool(false, "Session", group = "Filters", inline = "f4")
+i_ss = input.string("0800-2100", "Hours", group = "Filters", inline = "f4")
 
-i_al2  = input.int(14,    "ATR Period",  group="ATR / Risk:", inline="a1", minval=1)
-i_am   = input.float(1.5, "SL Mult",    group="ATR / Risk:", inline="a1", minval=0.1, step=0.1)
-i_rr   = input.float(2.0, "R : R",      group="ATR / Risk:", minval=0.1)
+i_ap = input.int(14, "ATR Period", group = "ATR Risk", inline = "a1", minval = 1)
+i_am = input.float(1.5, "SL Mult", group = "ATR Risk", inline = "a1", minval = 0.1, step = 0.1)
+i_rr = input.float(2.0, "Risk Reward", group = "ATR Risk", minval = 0.1)
 
-// ─── PRESET PARAMS ───────────────────────────────────────────────
-isC  = i_mkt == "Custom"
+// === PRESET PARAMS ===
+isC = i_mkt == "Custom"
 fRSI = isC ? i_rsi : i_mkt == "Gold (XAUUSD)" ? 14 : i_mkt == "NAS100" ? 10 : i_mkt == "US30" ? 12 : 14
 fWin = isC ? i_win : i_mkt == "Gold (XAUUSD)" ? 28 : i_mkt == "NAS100" ? 21 : i_mkt == "US30" ? 24 : 28
-fDeg = isC ? i_deg : i_mkt == "Gold (XAUUSD)" ? 2  : i_mkt == "NAS100" ? 3  : i_mkt == "US30" ? 2  : 2
-fSig = isC ? i_sig : i_mkt == "Gold (XAUUSD)" ? 3  : i_mkt == "NAS100" ? 2  : i_mkt == "US30" ? 3  : 4
-fAM  = isC ? i_am  : i_mkt == "Gold (XAUUSD)" ? 1.5 : i_mkt == "NAS100" ? 1.2 : 1.5
+fDeg = isC ? i_deg : i_mkt == "Gold (XAUUSD)" ? 2 : i_mkt == "NAS100" ? 3 : i_mkt == "US30" ? 2 : 2
+fSig = isC ? i_sig : i_mkt == "Gold (XAUUSD)" ? 3 : i_mkt == "NAS100" ? 2 : i_mkt == "US30" ? 3 : 4
+fAM = isC ? i_am : i_mkt == "Gold (XAUUSD)" ? 1.5 : i_mkt == "NAS100" ? 1.2 : 1.5
 
-// ─── CALCULATIONS ────────────────────────────────────────────────
+// === CALCULATIONS ===
 [drsi, ferr] = calc_drsi(ta.rsi(close, fRSI), fWin, fDeg)
 sigline = ta.ema(drsi, fSig)
-atrv    = ta.atr(i_al2)
-ema200  = ta.ema(close, i_tl)
-tUp     = close > ema200
-tDn     = close < ema200
+atrv = ta.atr(i_ap)
+ema200 = ta.ema(close, i_tl)
+tUp = close > ema200
+tDn = close < ema200
 
-// ADX (manual)
-tr_  = math.max(high - low, math.max(math.abs(high - close[1]), math.abs(low - close[1])))
-dmp_ = high - high[1] > low[1] - low ? math.max(high - high[1], 0.0) : 0.0
-dmn_ = low[1] - low > high - high[1] ? math.max(low[1] - low,  0.0) : 0.0
-trS  = ta.rma(tr_,  i_al)
-dpS  = ta.rma(dmp_, i_al)
-dnS  = ta.rma(dmn_, i_al)
-diP  = dpS / trS * 100
-diN  = dnS / trS * 100
-dx_  = math.abs(diP - diN) / math.max(diP + diN, 0.0001) * 100
-adxv = ta.rma(dx_, i_al)
+trv = math.max(high - low, math.max(math.abs(high - close[1]), math.abs(low - close[1])))
+dmp = high - high[1] > low[1] - low ? math.max(high - high[1], 0.0) : 0.0
+dmn = low[1] - low > high - high[1] ? math.max(low[1] - low, 0.0) : 0.0
+trS = ta.rma(trv, i_al)
+dpS = ta.rma(dmp, i_al)
+dnS = ta.rma(dmn, i_al)
+diP = dpS / trS * 100
+diN = dnS / trS * 100
+dxv = math.abs(diP - diN) / math.max(diP + diN, 0.0001) * 100
+adxv = ta.rma(dxv, i_al)
 
 inSess = time(timeframe.period, i_ss) != 0
 errThr = i_fe / 100.0
-hq     = ferr < errThr * 0.5
-gq     = ferr < errThr
+hq = ferr < errThr * 0.5
+gq = ferr < errThr
 
-// ─── FILTERS ─────────────────────────────────────────────────────
-fN   = i_fn ? gq         : true
-fA   = i_fa ? adxv > i_at : true
-fS   = i_fs ? inSess     : true
+// === FILTERS ===
+fN = i_fn ? gq : true
+fA = i_fa ? adxv > i_at : true
+fS = i_fs ? inSess : true
 fBuy = fN and fA and fS and (i_ft ? tUp : true)
 fSel = fN and fA and fS and (i_ft ? tDn : true)
 
-// ─── CONDITIONS ──────────────────────────────────────────────────
+// === CONDITIONS ===
 dcUp = drsi > drsi[1] and drsi[1] < drsi[2] and drsi[1] < 0.0
 dcDn = drsi < drsi[1] and drsi[1] > drsi[2] and drsi[1] > 0.0
-cUp  = ta.crossover(drsi, 0.0)
-cDn  = ta.crossunder(drsi, 0.0)
+cUp = ta.crossover(drsi, 0.0)
+cDn = ta.crossunder(drsi, 0.0)
 csUp = ta.crossover(drsi, sigline)
 csDn = ta.crossunder(drsi, sigline)
 
-rawL  = i_bc == "Direction Change" ? dcUp : i_bc == "Zero-Crossing" ? cUp  : csUp
-rawS  = i_sc == "Direction Change" ? dcDn : i_sc == "Zero-Crossing" ? cDn  : csDn
-rawEL = i_ec == "Direction Change" ? dcDn : i_ec == "Zero-Crossing" ? cDn  : csDn
-rawES = i_ec == "Direction Change" ? dcUp : i_ec == "Zero-Crossing" ? cUp  : csUp
+rawL = i_bc == "Direction Change" ? dcUp : i_bc == "Zero-Crossing" ? cUp : csUp
+rawS = i_sc == "Direction Change" ? dcDn : i_sc == "Zero-Crossing" ? cDn : csDn
+rawEL = i_ec == "Direction Change" ? dcDn : i_ec == "Zero-Crossing" ? cDn : csDn
+rawES = i_ec == "Direction Change" ? dcUp : i_ec == "Zero-Crossing" ? cUp : csUp
 
-goL = rawL  and fBuy
-goS = rawS  and fSel
+goL = rawL and fBuy
+goS = rawS and fSel
 exL = rawEL and fBuy
 exS = rawES and fSel
 
-// ─── PLOTS ───────────────────────────────────────────────────────
+// === PLOTS ===
 bClr = hq ? color.rgb(0, 255, 100) : color.rgb(86, 203, 47)
 sClr = hq ? color.rgb(255, 50, 50) : color.rgb(204, 0, 0)
-bSz  = hq ? size.normal : size.small
-sSz  = hq ? size.normal : size.small
+bSz = hq ? size.normal : size.small
+sSz = hq ? size.normal : size.small
 
-plotshape(goL and i_long ? low  : na, "Buy",        style=shape.triangleup,   location=location.belowbar, color=bClr, size=bSz)
-plotshape(goS and i_shrt ? high : na, "Sell",       style=shape.triangledown, location=location.abovebar, color=sClr, size=sSz)
-plotshape(i_exit and exL and i_long ? high : na, "Exit Long",  style=shape.xcross, location=location.abovebar, offset=-1, color=color.gray, size=size.tiny)
-plotshape(i_exit and exS and i_shrt ? low  : na, "Exit Short", style=shape.xcross, location=location.belowbar, offset=-1, color=color.gray, size=size.tiny)
+plotshape(goL and i_long ? low : na, "Buy", style = shape.triangleup, location = location.belowbar, color = bClr, size = bSz)
+plotshape(goS and i_shrt ? high : na, "Sell", style = shape.triangledown, location = location.abovebar, color = sClr, size = sSz)
+plotshape(i_exit and exL and i_long ? high : na, "Exit Long", style = shape.xcross, location = location.abovebar, offset = -1, color = color.gray, size = size.tiny)
+plotshape(i_exit and exS and i_shrt ? low : na, "Exit Short", style = shape.xcross, location = location.belowbar, offset = -1, color = color.gray, size = size.tiny)
 
-plot(i_ft ? ema200 : na, "Trend EMA", color=tUp ? color.new(color.green, 50) : color.new(color.red, 50), linewidth=2)
+plot(i_ft ? ema200 : na, "Trend EMA", color = tUp ? color.new(color.green, 50) : color.new(color.red, 50), linewidth = 2)
 
-// ─── RR BOXES ────────────────────────────────────────────────────
+// === RR BOXES ===
 if goL
     sl = close - atrv * fAM
     tp = close + (close - sl) * i_rr
-    box.new(bar_index, close, bar_index + 15, sl, border_width=0, bgcolor=color.new(color.red, 78))
-    box.new(bar_index, tp, bar_index + 15, close, border_width=0, bgcolor=color.new(color.green, 78))
+    box.new(bar_index, close, bar_index + 15, sl, border_width = 0, bgcolor = color.new(color.red, 78))
+    box.new(bar_index, tp, bar_index + 15, close, border_width = 0, bgcolor = color.new(color.green, 78))
 
 if goS
     sl = close + atrv * fAM
     tp = close - (sl - close) * i_rr
-    box.new(bar_index, sl, bar_index + 15, close, border_width=0, bgcolor=color.new(color.red, 78))
-    box.new(bar_index, close, bar_index + 15, tp, border_width=0, bgcolor=color.new(color.green, 78))
+    box.new(bar_index, sl, bar_index + 15, close, border_width = 0, bgcolor = color.new(color.red, 78))
+    box.new(bar_index, close, bar_index + 15, tp, border_width = 0, bgcolor = color.new(color.green, 78))
 
-// ─── ALERTS ──────────────────────────────────────────────────────
-alertcondition(goL, "Long",       "TFX GS V26: LONG")
-alertcondition(goS, "Short",      "TFX GS V26: SHORT")
-alertcondition(exL, "Exit Long",  "TFX GS V26: EXIT LONG")
+// === ALERTS ===
+alertcondition(goL, "Long", "TFX GS V26: LONG")
+alertcondition(goS, "Short", "TFX GS V26: SHORT")
+alertcondition(exL, "Exit Long", "TFX GS V26: EXIT LONG")
 alertcondition(exS, "Exit Short", "TFX GS V26: EXIT SHORT")
 
-// ─── DASHBOARD ───────────────────────────────────────────────────
+// === DASHBOARD ===
 C_DARK = color.rgb(18, 18, 18)
 C_CELL = color.rgb(30, 30, 30)
 C_GOLD = color.rgb(229, 207, 15)
-C_GRN  = color.rgb(80, 220, 78)
-C_RED  = color.rgb(220, 80, 80)
-C_YLW  = color.rgb(240, 200, 0)
+C_GRN = color.rgb(80, 220, 78)
+C_RED = color.rgb(220, 80, 80)
+C_YLW = color.rgb(240, 200, 0)
 
-tTxt = tUp    ? "BULLISH"   : "BEARISH"
-tClr = tUp    ? C_GRN       : C_RED
+tTxt = tUp ? "BULLISH" : "BEARISH"
+tClr = tUp ? C_GRN : C_RED
 aTxt = adxv >= 25 ? "TRENDING" : adxv >= 15 ? "WEAK" : "RANGING"
 aClr = adxv >= 25 ? C_GRN : adxv >= 15 ? C_YLW : C_RED
-qTxt = hq     ? "HIGH"     : gq ? "NORMAL" : "LOW"
-qClr = hq     ? C_GRN      : gq ? C_YLW    : C_RED
+qTxt = hq ? "HIGH" : gq ? "NORMAL" : "LOW"
+qClr = hq ? C_GRN : gq ? C_YLW : C_RED
 
-var table db = table.new(position.top_right, 2, 7, frame_color=C_GOLD, frame_width=1, border_color=color.rgb(45, 45, 45), border_width=1)
+var table db = table.new(position.top_right, 2, 7, frame_color = C_GOLD, frame_width = 1, border_color = color.rgb(45, 45, 45), border_width = 1)
 
 if barstate.islast
-    table.cell(db, 0, 0, "TFX BLACK-GOLD",                            text_color=C_GOLD,       bgcolor=C_DARK, text_size=size.normal)
-    table.cell(db, 1, 0, "V26 ULTRA",                                 text_color=color.white,  bgcolor=C_DARK, text_size=size.small)
-    table.cell(db, 0, 1, "MARKET",                                    text_color=color.white,  bgcolor=C_CELL, text_size=size.small)
-    table.cell(db, 1, 1, i_mkt,                                       text_color=C_GOLD,       bgcolor=C_CELL, text_size=size.small)
-    table.cell(db, 0, 2, "TREND",                                     text_color=color.white,  bgcolor=C_CELL, text_size=size.small)
-    table.cell(db, 1, 2, tTxt,                                        text_color=tClr,         bgcolor=C_CELL, text_size=size.small)
-    table.cell(db, 0, 3, "MOMENTUM",                                  text_color=color.white,  bgcolor=C_CELL, text_size=size.small)
-    table.cell(db, 1, 3, aTxt,                                        text_color=aClr,         bgcolor=C_CELL, text_size=size.small)
-    table.cell(db, 0, 4, "ADX",                                       text_color=color.white,  bgcolor=C_CELL, text_size=size.small)
-    table.cell(db, 1, 4, str.tostring(math.round(adxv)),              text_color=aClr,         bgcolor=C_CELL, text_size=size.small)
-    table.cell(db, 0, 5, "FIT QUALITY",                               text_color=color.white,  bgcolor=C_CELL, text_size=size.small)
-    table.cell(db, 1, 5, qTxt,                                        text_color=qClr,         bgcolor=C_CELL, text_size=size.small)
-    table.cell(db, 0, 6, "ATR",                                       text_color=color.white,  bgcolor=C_CELL, text_size=size.small)
-    table.cell(db, 1, 6, str.tostring(math.round(atrv * 100) / 100), text_color=C_GOLD,        bgcolor=C_CELL, text_size=size.small)
+    table.cell(db, 0, 0, "TFX BLACK-GOLD", text_color = C_GOLD, bgcolor = C_DARK, text_size = size.normal)
+    table.cell(db, 1, 0, "V26 ULTRA", text_color = color.white, bgcolor = C_DARK, text_size = size.small)
+    table.cell(db, 0, 1, "MARKET", text_color = color.white, bgcolor = C_CELL, text_size = size.small)
+    table.cell(db, 1, 1, i_mkt, text_color = C_GOLD, bgcolor = C_CELL, text_size = size.small)
+    table.cell(db, 0, 2, "TREND", text_color = color.white, bgcolor = C_CELL, text_size = size.small)
+    table.cell(db, 1, 2, tTxt, text_color = tClr, bgcolor = C_CELL, text_size = size.small)
+    table.cell(db, 0, 3, "MOMENTUM", text_color = color.white, bgcolor = C_CELL, text_size = size.small)
+    table.cell(db, 1, 3, aTxt, text_color = aClr, bgcolor = C_CELL, text_size = size.small)
+    table.cell(db, 0, 4, "ADX", text_color = color.white, bgcolor = C_CELL, text_size = size.small)
+    table.cell(db, 1, 4, str.tostring(math.round(adxv)), text_color = aClr, bgcolor = C_CELL, text_size = size.small)
+    table.cell(db, 0, 5, "FIT QUALITY", text_color = color.white, bgcolor = C_CELL, text_size = size.small)
+    table.cell(db, 1, 5, qTxt, text_color = qClr, bgcolor = C_CELL, text_size = size.small)
+    table.cell(db, 0, 6, "ATR", text_color = color.white, bgcolor = C_CELL, text_size = size.small)
+    table.cell(db, 1, 6, str.tostring(math.round(atrv * 100) / 100), text_color = C_GOLD, bgcolor = C_CELL, text_size = size.small)
